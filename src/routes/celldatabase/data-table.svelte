@@ -16,7 +16,9 @@
 	import * as Table from '$lib/components/ui/table/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import GitBranchIcon from '@lucide/svelte/icons/git-branch';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
 	type DataTableProps<TData, TValue> = {
 		data: TData[];
@@ -37,6 +39,7 @@
 		voltage_nominal_v: true,
 
 		// standardmäßig versteckt, aber über Columns-Button aktivierbar
+		chemistry: false,
 		mass_g: false,
 		energy_wh: false,
 		voltage_min_v: false,
@@ -118,32 +121,41 @@
 
 <div>
 	<!-- Filter oben: wir filtern auf manufacturer -->
-	<div class="flex items-center py-4">
+	<div class="flex items-center gap-2 py-2">
+		<!-- Search Left -->
 		<Input
 			placeholder="Search Model..."
 			value={(table.getColumn('model')?.getFilterValue() as string) ?? ''}
 			onchange={(e) => table.getColumn('model')?.setFilterValue(e.currentTarget.value)}
 			oninput={(e) => table.getColumn('model')?.setFilterValue(e.currentTarget.value)}
-			class="max-w-sm"
+			class="h-8 w-[220px]"
 		/>
 
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Button {...props} variant="outline" class="ms-auto">Columns</Button>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end">
-				{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
-					<DropdownMenu.CheckboxItem
-						class="capitalize"
-						bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
-					>
-						{(column.columnDef.meta as { label?: string })?.label ?? column.id}
-					</DropdownMenu.CheckboxItem>
-				{/each}
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		<!-- Right Side Group -->
+		<div class="ml-auto flex items-center gap-2">
+			<Button size="sm">+ Add new Cell</Button>
+
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline"
+							><ChevronDownIcon />
+							Columns
+						</Button>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content align="end">
+					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
+						<DropdownMenu.CheckboxItem
+							class="capitalize"
+							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+						>
+							{(column.columnDef.meta as { label?: string })?.label ?? column.id}
+						</DropdownMenu.CheckboxItem>
+					{/each}
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+		</div>
 	</div>
 
 	<div class="rounded-md border">

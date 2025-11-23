@@ -147,8 +147,8 @@
 		</div>
 
 		<div class="flex gap-2">
-			<Button disabled={!selected}>Open in Configurator</Button>
-			<Button variant="outline" disabled={!selected}>Export to PDF</Button>
+			<Button>Open in Configurator</Button>
+			<Button variant="outline">Export to PDF</Button>
 		</div>
 	</div>
 
