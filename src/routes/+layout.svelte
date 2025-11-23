@@ -5,7 +5,8 @@
 	import { Separator } from '$lib/components/ui/separator/index.js';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { page } from '$app/stores';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/icon.svg';
+	import { navMain } from '$lib/components/app-sidebar.svelte';
 
 	let { children } = $props();
 
@@ -18,12 +19,21 @@
 			.join(' ');
 	};
 
+	const navEntries = $derived(
+		navMain.flatMap((item) => {
+			const subs = (item.items ?? []).map((sub) => [sub.url, sub.title] as const);
+			return [[item.url, item.title] as const, ...subs];
+		})
+	);
+
+	const navLookup = $derived(new Map<string, string>(navEntries));
+
 	const segments = $derived($page.url.pathname.split('/').filter(Boolean));
 	const crumbs = $derived([
-		{ label: 'Home', href: '/' },
+		{ label: navLookup.get('/') ?? 'Home', href: '/' },
 		...segments.map((segment, idx) => {
 			const href = `/${segments.slice(0, idx + 1).join('/')}`;
-			return { label: formatLabel(segment), href };
+			return { label: navLookup.get(href) ?? formatLabel(segment), href };
 		})
 	]);
 </script>
@@ -58,7 +68,7 @@
 			</div>
 		</header>
 		<main class="flex flex-1 flex-col gap-4 p-4 pt-0">
-			<section class="bg-muted/50 min-h-screen flex-1 rounded-xl p-6 md:min-h-min">
+			<section class="min-h-screen flex-1 rounded-xl bg-muted/50 p-6 md:min-h-min">
 				{@render children()}
 			</section>
 		</main>
