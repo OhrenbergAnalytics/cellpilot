@@ -14,9 +14,7 @@
 	} from '@tanstack/table-core';
 	import { createSvelteTable, FlexRender } from '$lib/components/ui/data-table/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
-	import GitBranchIcon from '@lucide/svelte/icons/git-branch';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 
@@ -27,7 +25,8 @@
 
 	let { data, columns }: DataTableProps<TData, TValue> = $props();
 
-	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 10 });
+	// max. 8 Rows pro Seite
+	let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 8 });
 	let sorting = $state<SortingState>([]);
 	let columnFilters = $state<ColumnFiltersState>([]);
 	let columnVisibility = $state<VisibilityState>({
@@ -55,6 +54,52 @@
 
 	let rowSelection = $state<RowSelectionState>({});
 
+	// Unique Values für Dropdowns (Manufacturer, Format, Chemistry)
+	const manufacturers = $derived(
+		Array.from(
+			new Set(
+				(data ?? []).map((row: any) => row?.manufacturer as string | undefined).filter(Boolean)
+			)
+		).sort()
+	);
+
+	const formats = $derived(
+		Array.from(
+			new Set(
+				(data ?? []).map((row: any) => row?.cell_format as string | undefined).filter(Boolean)
+			)
+		).sort()
+	);
+
+	const chemistries = $derived(
+		Array.from(
+			new Set((data ?? []).map((row: any) => row?.chemistry as string | undefined).filter(Boolean))
+		).sort()
+	);
+
+	// Columns, die als Range-Filter (min/max) behandelt werden
+	const rangeFilterColumns = [
+		'capacity_ah',
+		'voltage_nominal_v',
+		'mass_g',
+		'energy_wh',
+		'voltage_min_v',
+		'voltage_max_v',
+		'current_max_charge_a',
+		'current_max_discharge_a',
+		'internal_resistance__initial_mohm',
+		'charge_discharge_cycles',
+		'capacity_retention',
+		'temperature_oparating_min_celcius',
+		'temperature_oparating_max_celcius'
+	];
+
+	// Spalten, die linksbündig bleiben sollen (Text)
+	const leftAlignedColumns = ['manufacturer', 'model', 'cell_format', 'chemistry'];
+
+	// Checkbox-Spalte(n) (Selection)
+	const checkboxColumnIds = ['select', '__select__'];
+
 	const table = createSvelteTable({
 		get data() {
 			return data;
@@ -64,6 +109,8 @@
 		getPaginationRowModel: getPaginationRowModel(),
 		getSortedRowModel: getSortedRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),
+		enableColumnFilters: true, // global aktiv, Columns regeln Details
+
 		onPaginationChange: (updater) => {
 			if (typeof updater === 'function') {
 				pagination = updater(pagination);
@@ -117,29 +164,31 @@
 			}
 		}
 	});
+
+	function resetAllFilters() {
+		// Reset TanStack filter state
+		columnFilters = [];
+
+		// Reset visible column filter values
+		table.getAllLeafColumns().forEach((col) => {
+			if (col.getCanFilter()) {
+				col.setFilterValue(undefined);
+			}
+		});
+	}
 </script>
 
 <div>
-	<!-- Filter oben: wir filtern auf manufacturer -->
-	<div class="flex items-center gap-2 py-2">
-		<!-- Search Left -->
-		<Input
-			placeholder="Search Model..."
-			value={(table.getColumn('model')?.getFilterValue() as string) ?? ''}
-			onchange={(e) => table.getColumn('model')?.setFilterValue(e.currentTarget.value)}
-			oninput={(e) => table.getColumn('model')?.setFilterValue(e.currentTarget.value)}
-			class="h-8 w-[220px]"
-		/>
-
-		<!-- Right Side Group -->
+	<!-- Oben nur Actions -->
+	<div class="flex items-center gap-2 pt-0 pb-2">
 		<div class="ml-auto flex items-center gap-2">
 			<Button size="sm">+ Add new Cell</Button>
-
+			<Button size="sm" variant="outline" onclick={resetAllFilters}>Reset Filters</Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
-						<Button {...props} variant="outline"
-							><ChevronDownIcon />
+						<Button {...props} variant="outline">
+							<ChevronDownIcon class="mr-1 h-4 w-4" />
 							Columns
 						</Button>
 					{/snippet}
@@ -158,13 +207,21 @@
 		</div>
 	</div>
 
-	<div class="rounded-md border">
-		<Table.Root>
+	<div class="rounded-md border pr-3">
+		<Table.Root class="w-full min-w-full">
 			<Table.Header>
 				{#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
+					<!-- Header-Zeile -->
 					<Table.Row>
 						{#each headerGroup.headers as header (header.id)}
-							<Table.Head colspan={header.colSpan} class="[&:has([role=checkbox])]:ps-3">
+							<Table.Head
+								colspan={header.colSpan}
+								class={`
+									${checkboxColumnIds.includes(header.column.id) ? 'w-[40px] px-0 text-center' : ''}
+									${leftAlignedColumns.includes(header.column.id as string) ? 'text-left' : 'text-right'}
+									[&:has([role=checkbox])]:ps-3
+								`}
+							>
 								{#if !header.isPlaceholder}
 									<FlexRender
 										content={header.column.columnDef.header}
@@ -174,13 +231,263 @@
 							</Table.Head>
 						{/each}
 					</Table.Row>
+
+					<!-- Filter-Zeile -->
+					<Table.Row>
+						{#each headerGroup.headers as header (header.id)}
+							<Table.Head
+								class={`
+									py-1 
+									${checkboxColumnIds.includes(header.column.id) ? 'w-[36px] px-0' : ''}
+									${leftAlignedColumns.includes(header.column.id as string) ? 'text-left' : 'text-right'}
+								`}
+							>
+								{#if !header.isPlaceholder && header.column.getCanFilter()}
+									{#if header.column.id === 'manufacturer'}
+										<!-- Manufacturer Filter: shadcn Dropdown -->
+										<DropdownMenu.Root>
+											<DropdownMenu.Trigger>
+												{#snippet child({ props })}
+													<Button
+														{...props}
+														variant="outline"
+														class="h-7 max-w-[140px] truncate px-2 text-[10px]"
+													>
+														<ChevronDownIcon class="h-3 w-3" />
+														<span class="truncate">
+															{#if header.column.getFilterValue()}
+																{header.column.getFilterValue() as string}
+															{:else}
+																All manufacturers
+															{/if}
+														</span>
+													</Button>
+												{/snippet}
+											</DropdownMenu.Trigger>
+											<DropdownMenu.Content
+												align="start"
+												class="max-h-56 min-w-[160px] overflow-y-auto"
+											>
+												<DropdownMenu.Item>
+													<button
+														type="button"
+														class="w-full px-2 py-1 text-left text-xs"
+														onclick={() => header.column.setFilterValue(undefined)}
+													>
+														All manufacturers
+													</button>
+												</DropdownMenu.Item>
+												<DropdownMenu.Separator />
+												{#each manufacturers as m}
+													<DropdownMenu.Item>
+														<button
+															type="button"
+															class="w-full px-2 py-1 text-left text-xs"
+															onclick={() => header.column.setFilterValue(m)}
+														>
+															{m}
+														</button>
+													</DropdownMenu.Item>
+												{/each}
+											</DropdownMenu.Content>
+										</DropdownMenu.Root>
+									{:else if header.column.id === 'chemistry'}
+										<!-- Chemistry Filter: shadcn Dropdown -->
+										<DropdownMenu.Root>
+											<DropdownMenu.Trigger>
+												{#snippet child({ props })}
+													<Button
+														{...props}
+														variant="outline"
+														class="h-7 max-w-[140px] truncate px-2 text-[10px]"
+													>
+														<ChevronDownIcon class="h-3 w-3" />
+														<span class="truncate">
+															{#if header.column.getFilterValue()}
+																{header.column.getFilterValue() as string}
+															{:else}
+																All chemistries
+															{/if}
+														</span>
+													</Button>
+												{/snippet}
+											</DropdownMenu.Trigger>
+											<DropdownMenu.Content
+												align="start"
+												class="max-h-56 min-w-[160px] overflow-y-auto"
+											>
+												<DropdownMenu.Item>
+													<button
+														type="button"
+														class="w-full px-2 py-1 text-left text-xs"
+														onclick={() => header.column.setFilterValue(undefined)}
+													>
+														All chemistries
+													</button>
+												</DropdownMenu.Item>
+												<DropdownMenu.Separator />
+												{#each chemistries as c}
+													<DropdownMenu.Item>
+														<button
+															type="button"
+															class="w-full px-2 py-1 text-left text-xs"
+															onclick={() => header.column.setFilterValue(c)}
+														>
+															{c}
+														</button>
+													</DropdownMenu.Item>
+												{/each}
+											</DropdownMenu.Content>
+										</DropdownMenu.Root>
+									{:else if header.column.id === 'model'}
+										<!-- Model Text-Filter -->
+										<input
+											placeholder="Search Models..."
+											class="h-7 max-w-[110px] rounded-md border px-1 text-[10px]"
+											value={(header.column.getFilterValue() as string) ?? ''}
+											oninput={(e) =>
+												header.column.setFilterValue((e.target as HTMLInputElement).value)}
+										/>
+									{:else if header.column.id === 'cell_format'}
+										<!-- Format Filter: shadcn Dropdown -->
+										<DropdownMenu.Root>
+											<DropdownMenu.Trigger>
+												{#snippet child({ props })}
+													<Button
+														{...props}
+														variant="outline"
+														class="h-7 max-w-[120px] truncate px-2 text-[10px]"
+													>
+														<ChevronDownIcon class="h-3 w-3" />
+														<span class="truncate">
+															{#if header.column.getFilterValue()}
+																{header.column.getFilterValue() as string}
+															{:else}
+																All formats
+															{/if}
+														</span>
+													</Button>
+												{/snippet}
+											</DropdownMenu.Trigger>
+											<DropdownMenu.Content
+												align="start"
+												class="max-h-56 min-w-[140px] overflow-y-auto"
+											>
+												<DropdownMenu.Item>
+													<button
+														type="button"
+														class="w-full px-2 py-1 text-left text-xs"
+														onclick={() => header.column.setFilterValue(undefined)}
+													>
+														All formats
+													</button>
+												</DropdownMenu.Item>
+												<DropdownMenu.Separator />
+												{#each formats as f}
+													<DropdownMenu.Item>
+														<button
+															type="button"
+															class="w-full px-2 py-1 text-left text-xs"
+															onclick={() => header.column.setFilterValue(f)}
+														>
+															{f}
+														</button>
+													</DropdownMenu.Item>
+												{/each}
+											</DropdownMenu.Content>
+										</DropdownMenu.Root>
+									{:else if rangeFilterColumns.includes(header.column.id as string)}
+										<!-- rechtsbündig: Block an den rechten Rand -->
+										<div class="ml-auto flex w-fit items-center justify-end gap-1">
+											<input
+												type="number"
+												placeholder="Min"
+												class="h-7 max-w-[55px] rounded-md border px-1 text-[10px]"
+												value={(
+													header.column.getFilterValue() as [string, string] | undefined
+												)?.[0] ?? ''}
+												oninput={(e) => {
+													const rawMin = (e.target as HTMLInputElement).value;
+													const current = (header.column.getFilterValue() as
+														| [string, string]
+														| undefined) ?? ['', ''];
+													const rawMax = current[1];
+
+													// parse numbers, allow empty
+													const min = rawMin === '' ? null : parseFloat(rawMin);
+													const max = rawMax === '' ? null : parseFloat(rawMax);
+
+													// sort logic:
+													let realMin = min;
+													let realMax = max;
+
+													if (min !== null && max !== null && min > max) {
+														// swap
+														realMin = max;
+														realMax = min;
+													}
+
+													header.column.setFilterValue([
+														realMin === null ? '' : String(realMin),
+														realMax === null ? '' : String(realMax)
+													]);
+												}}
+											/>
+											<input
+												type="number"
+												placeholder="Max"
+												class="h-7 max-w-[55px] rounded-md border px-1 text-[10px]"
+												value={(
+													header.column.getFilterValue() as [string, string] | undefined
+												)?.[1] ?? ''}
+												oninput={(e) => {
+													const rawMax = (e.target as HTMLInputElement).value;
+													const current = (header.column.getFilterValue() as
+														| [string, string]
+														| undefined) ?? ['', ''];
+													const rawMin = current[0];
+
+													const min = rawMin === '' ? null : parseFloat(rawMin);
+													const max = rawMax === '' ? null : parseFloat(rawMax);
+
+													let realMin = min;
+													let realMax = max;
+
+													if (min !== null && max !== null && min > max) {
+														realMin = max;
+														realMax = min;
+													}
+
+													header.column.setFilterValue([
+														realMin === null ? '' : String(realMin),
+														realMax === null ? '' : String(realMax)
+													]);
+												}}
+											/>
+										</div>
+									{/if}
+								{/if}
+							</Table.Head>
+						{/each}
+					</Table.Row>
 				{/each}
 			</Table.Header>
+
 			<Table.Body>
 				{#each table.getRowModel().rows as row (row.id)}
 					<Table.Row data-state={row.getIsSelected() && 'selected'}>
 						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell class="[&:has([role=checkbox])]:ps-3">
+							<Table.Cell
+								class={`
+									${
+										checkboxColumnIds.includes(cell.column.id)
+											? 'w-[36px] pl-2'
+											: leftAlignedColumns.includes(cell.column.id as string)
+												? 'px-2 text-left'
+												: 'pr-2 text-right'
+									}
+								`}
+							>
 								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
 							</Table.Cell>
 						{/each}

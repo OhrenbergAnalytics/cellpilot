@@ -3,7 +3,6 @@ import type { ColumnDef } from "@tanstack/table-core";
 import { createRawSnippet } from "svelte";
 import { renderSnippet, renderComponent } from "$lib/components/ui/data-table/index.js";
 import DataTableCheckbox from "./data-table-checkbox.svelte";
-import DataTableActions from "./data-table-actions.svelte";
 
 export type CylindricalCell = {
     id: number;
@@ -46,7 +45,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
                 "aria-label": "Select row"
             }),
         enableSorting: false,
-        enableHiding: false
+        enableHiding: false,
+        enableColumnFilter: false
     },
 
     // Manufacturer
@@ -54,6 +54,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
         accessorKey: "manufacturer",
         header: "Manufacturer",
         meta: { label: "Manufacturer" },
+        enableColumnFilter: true,
+        filterFn: 'equalsString',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: string | null }]>((getValue) => {
                 const { value } = getValue();
@@ -73,6 +75,7 @@ export const columns: ColumnDef<CylindricalCell>[] = [
         accessorKey: "model",
         header: "Model",
         meta: { label: "Model" },
+        enableColumnFilter: true,
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: string | null }]>((getValue) => {
                 const { value } = getValue();
@@ -92,6 +95,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
         accessorKey: "cell_format",
         header: "Format",
         meta: { label: "Format" },
+        enableColumnFilter: true,
+        filterFn: 'equalsString',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: string | null }]>((getValue) => {
                 const { value } = getValue();
@@ -110,6 +115,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
         accessorKey: "chemistry",
         header: "Chemistry",
         meta: { label: "Chemistry" },
+        enableColumnFilter: true,
+        filterFn: 'equalsString',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: string | null }]>((getValue) => {
                 const { value } = getValue();
@@ -134,6 +141,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(snippet);
         },
         meta: { label: "Mass [g]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -159,6 +168,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Capacity [Ah]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -184,6 +195,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Energy [Wh]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -209,6 +222,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Nominal Voltage [V]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -234,6 +249,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Min Voltage [V]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -259,6 +276,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Max Voltage [V]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -284,6 +303,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Max Charge Current [A]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -309,6 +330,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Max Discharge Current [A]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -334,6 +357,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Internal Resistance [mΩ]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -359,6 +384,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Charge/Discharge Cycles" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -384,6 +411,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Capacity retention [%]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -410,6 +439,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Min Operating Temp. [°C]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -435,6 +466,8 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             return renderSnippet(headerSnippet);
         },
         meta: { label: "Max Operating Temp. [°C]" },
+        enableColumnFilter: true,
+        filterFn: 'inNumberRange',
         cell: ({ row }) => {
             const snippet = createRawSnippet<[{ value: number | null }]>((getValue) => {
                 const { value } = getValue();
@@ -449,14 +482,4 @@ export const columns: ColumnDef<CylindricalCell>[] = [
             });
         }
     },
-
-    // Actions
-    {
-        id: "actions",
-        enableHiding: false,
-        cell: ({ row }) =>
-            renderComponent(DataTableActions, {
-                id: row.original.id
-            })
-    }
 ];

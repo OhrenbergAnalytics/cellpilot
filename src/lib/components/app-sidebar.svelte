@@ -34,25 +34,7 @@
 		{
 			title: 'Cell Database',
 			url: '/celldatabase',
-			icon: database,
-			items: [
-				{
-					title: 'Compare Cells',
-					url: '#'
-				},
-				{
-					title: 'Add new Cell',
-					url: '#'
-				},
-				{
-					title: 'Tutorials',
-					url: '#'
-				},
-				{
-					title: 'Changelog',
-					url: '#'
-				}
-			]
+			icon: database
 		},
 		{
 			title: 'Settings',

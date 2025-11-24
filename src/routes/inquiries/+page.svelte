@@ -4,6 +4,7 @@
 	import { ScrollArea } from '$lib/components/ui/scroll-area';
 	import { Separator } from '$lib/components/ui/separator';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 
 	type Inquiry = {
 		id: string;
@@ -147,8 +148,8 @@
 		</div>
 
 		<div class="flex gap-2">
-			<Button>Open in Configurator</Button>
-			<Button variant="outline">Export to PDF</Button>
+			<Button size="sm">Open in Configurator</Button>
+			<Button size="sm" variant="outline">Export to PDF</Button>
 		</div>
 	</div>
 
