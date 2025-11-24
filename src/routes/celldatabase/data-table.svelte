@@ -17,6 +17,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
+	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
 
 	type DataTableProps<TData, TValue> = {
 		data: TData[];
@@ -179,31 +180,37 @@
 </script>
 
 <div>
-	<!-- Oben nur Actions -->
-	<div class="flex items-center gap-2 pt-0 pb-2">
-		<div class="ml-auto flex items-center gap-2">
+	<div class="flex items-center justify-between pt-0 pb-2">
+		<!-- LINKS: Add + Reset -->
+		<div class="flex items-center gap-2">
 			<Button size="sm">+ Add new Cell</Button>
-			<Button size="sm" variant="outline" onclick={resetAllFilters}>Reset Filters</Button>
-			<DropdownMenu.Root>
-				<DropdownMenu.Trigger>
-					{#snippet child({ props })}
-						<Button {...props} variant="outline">
-							<ChevronDownIcon class="mr-1 h-4 w-4" />
-							Columns
-						</Button>
-					{/snippet}
-				</DropdownMenu.Trigger>
-				<DropdownMenu.Content align="end">
-					{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
-						<DropdownMenu.CheckboxItem
-							class="capitalize"
-							bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
-						>
-							{(column.columnDef.meta as { label?: string })?.label ?? column.id}
-						</DropdownMenu.CheckboxItem>
-					{/each}
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+		</div>
+
+		<!-- RECHTS: Columns Dropdown -->
+		<div>
+			<ButtonGroup.Root>
+				<Button size="sm" variant="outline" onclick={resetAllFilters}>Reset Filters</Button>
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="outline" size="sm">
+								Columns
+								<ChevronDownIcon class="mr-1 h-4 w-4" />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end">
+						{#each table.getAllColumns().filter((col) => col.getCanHide()) as column (column.id)}
+							<DropdownMenu.CheckboxItem
+								class="capitalize"
+								bind:checked={() => column.getIsVisible(), (v) => column.toggleVisibility(!!v)}
+							>
+								{(column.columnDef.meta as { label?: string })?.label ?? column.id}
+							</DropdownMenu.CheckboxItem>
+						{/each}
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			</ButtonGroup.Root>
 		</div>
 	</div>
 
@@ -253,7 +260,6 @@
 														variant="outline"
 														class="h-7 max-w-[140px] truncate px-2 text-[10px]"
 													>
-														<ChevronDownIcon class="h-3 w-3" />
 														<span class="truncate">
 															{#if header.column.getFilterValue()}
 																{header.column.getFilterValue() as string}
@@ -261,6 +267,7 @@
 																All manufacturers
 															{/if}
 														</span>
+														<ChevronDownIcon class="h-3 w-3" />
 													</Button>
 												{/snippet}
 											</DropdownMenu.Trigger>
@@ -301,7 +308,6 @@
 														variant="outline"
 														class="h-7 max-w-[140px] truncate px-2 text-[10px]"
 													>
-														<ChevronDownIcon class="h-3 w-3" />
 														<span class="truncate">
 															{#if header.column.getFilterValue()}
 																{header.column.getFilterValue() as string}
@@ -309,6 +315,7 @@
 																All chemistries
 															{/if}
 														</span>
+														<ChevronDownIcon class="h-3 w-3" />
 													</Button>
 												{/snippet}
 											</DropdownMenu.Trigger>
@@ -358,7 +365,6 @@
 														variant="outline"
 														class="h-7 max-w-[120px] truncate px-2 text-[10px]"
 													>
-														<ChevronDownIcon class="h-3 w-3" />
 														<span class="truncate">
 															{#if header.column.getFilterValue()}
 																{header.column.getFilterValue() as string}
@@ -366,6 +372,7 @@
 																All formats
 															{/if}
 														</span>
+														<ChevronDownIcon class="h-3 w-3" />
 													</Button>
 												{/snippet}
 											</DropdownMenu.Trigger>
