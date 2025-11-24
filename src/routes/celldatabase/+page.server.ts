@@ -30,7 +30,7 @@ export const load: PageServerLoad = async () => {
         .order("model", { ascending: true });
 
     if (dbError) {
-        console.error("Fehler beim Laden der Zellen:", dbError.message);
+        console.error("Fehler beim Laden der Zellen:", dbError);
         throw error(500, "Fehler beim Laden der Zellen aus der Datenbank");
     }
 

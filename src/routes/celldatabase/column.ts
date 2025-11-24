@@ -4,7 +4,7 @@ import { createRawSnippet } from "svelte";
 import { renderSnippet, renderComponent } from "$lib/components/ui/data-table/index.js";
 import DataTableCheckbox from "./data-table-checkbox.svelte";
 
-export type CylindricalCell = {
+export type Cells = {
     id: number;
     manufacturer: string | null;
     model: string | null;
@@ -25,7 +25,7 @@ export type CylindricalCell = {
     chemistry: string | null;
 };
 
-export const columns: ColumnDef<CylindricalCell>[] = [
+export const columns: ColumnDef<Cells>[] = [
     // Checkbox-Spalte
     {
         id: "select",
