@@ -5,7 +5,7 @@ import { supabase } from "$lib/supabaseClient";
 
 export const load: PageServerLoad = async () => {
     const { data, error: dbError } = await supabase
-        .from("cells_cylindrical")
+        .from("cells")
         .select(`
       id,
       manufacturer,
