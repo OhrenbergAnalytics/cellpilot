@@ -18,6 +18,12 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import ChevronDownIcon from '@lucide/svelte/icons/chevron-down';
 	import * as ButtonGroup from '$lib/components/ui/button-group/index.js';
+	import * as ContextMenu from '$lib/components/ui/context-menu/index.js';
+	import star from '$lib/assets/star.svg';
+	import copy from '$lib/assets/copy.svg';
+	import delete_icon from '$lib/assets/delete.svg';
+	import edit from '$lib/assets/edit.svg';
+	import info from '$lib/assets/info.svg';
 
 	type DataTableProps<TData, TValue> = {
 		data: TData[];
@@ -482,23 +488,88 @@
 
 			<Table.Body>
 				{#each table.getRowModel().rows as row (row.id)}
-					<Table.Row data-state={row.getIsSelected() && 'selected'}>
-						{#each row.getVisibleCells() as cell (cell.id)}
-							<Table.Cell
-								class={`
-									${
-										checkboxColumnIds.includes(cell.column.id)
-											? 'w-[36px] pl-2'
-											: leftAlignedColumns.includes(cell.column.id as string)
-												? 'px-2 text-left'
-												: 'pr-2 text-right'
-									}
-								`}
+					<ContextMenu.Root>
+						<ContextMenu.Trigger>
+							{#snippet child({ props })}
+								<Table.Row {...props} data-state={row.getIsSelected() && 'selected'}>
+									{#each row.getVisibleCells() as cell (cell.id)}
+										<Table.Cell
+											class={`${
+												checkboxColumnIds.includes(cell.column.id)
+													? 'w-[36px] pl-2'
+													: leftAlignedColumns.includes(cell.column.id as string)
+														? 'px-2 text-left'
+														: 'pr-2 text-right'
+											}`}
+										>
+											<FlexRender
+												content={cell.column.columnDef.cell}
+												context={cell.getContext()}
+											/>
+										</Table.Cell>
+									{/each}
+								</Table.Row>
+							{/snippet}
+						</ContextMenu.Trigger>
+
+						<ContextMenu.Content>
+							<ContextMenu.Item
+								onclick={() => {
+									// Beispiel: Row-Daten verwenden
+									const rowData = row.original as any;
+									console.log('Edit', rowData);
+									// hier z.B. ein Modal öffnen, Navigation, etc.
+								}}
 							>
-								<FlexRender content={cell.column.columnDef.cell} context={cell.getContext()} />
-							</Table.Cell>
-						{/each}
-					</Table.Row>
+								<img src={star} alt="star" class="h-4 w-4 opacity-70" />
+								Favorite
+							</ContextMenu.Item>
+							<ContextMenu.Item
+								onclick={() => {
+									// Beispiel: Row-Daten verwenden
+									const rowData = row.original as any;
+									console.log('Edit', rowData);
+									// hier z.B. ein Modal öffnen, Navigation, etc.
+								}}
+							>
+								<img src={info} alt="info" class="h-4 w-4 opacity-70" />
+								Details
+							</ContextMenu.Item>
+
+							<ContextMenu.Separator />
+							<ContextMenu.Item
+								onclick={() => {
+									// Beispiel: Row-Daten verwenden
+									const rowData = row.original as any;
+									console.log('Edit', rowData);
+									// hier z.B. ein Modal öffnen, Navigation, etc.
+								}}
+							>
+								<img src={edit} alt="edit" class="h-4 w-4 opacity-70" />
+								Edit cell
+							</ContextMenu.Item>
+
+							<ContextMenu.Item
+								onclick={() => {
+									const rowData = row.original as any;
+									console.log('Duplicate', rowData);
+								}}
+							>
+								<img src={copy} alt="copy" class="h-4 w-4 opacity-70" />
+								Duplicate
+							</ContextMenu.Item>
+							<ContextMenu.Separator />
+							<ContextMenu.Item
+								onclick={() => {
+									const rowData = row.original as any;
+									console.log('Delete', rowData);
+								}}
+							>
+								<img src={delete_icon} alt="delete" class="h-4 w-4 opacity-70" />
+								Delete
+							</ContextMenu.Item>
+						</ContextMenu.Content>
+					</ContextMenu.Root>
 				{:else}
 					<Table.Row>
 						<Table.Cell colspan={columns.length} class="h-24 text-center">No results.</Table.Cell>
